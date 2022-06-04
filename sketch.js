@@ -98,7 +98,7 @@ function mouseClicked() {
 
         // starting sustain
         for (const note of chordButton.getChord()) {
-          queueBegin(chordButton.getRootNote());
+          queueBegin(note);
           console.log("starting ", note);
         }
       } else {
@@ -109,7 +109,7 @@ function mouseClicked() {
 
         // release current chord
         for (const note of chordButton.getChord()) {
-          polySynth.noteRelease(chordButton.getRootNote());
+          polySynth.noteRelease(note);
           console.log("stopping ", note);
         }
       }

@@ -1,6 +1,6 @@
 class Chord {
-  constructor(tone, chordQuality, color, x, y, width, height) {
-    this.tone = tone;
+  constructor(root, chordQuality, color, x, y, width, height) {
+    this.root = root;
     this.chordQuality = chordQuality;
     this.color = color;
     this.height = height;
@@ -8,14 +8,16 @@ class Chord {
     this.x = x;
     this.y = y;
     this.isActive = false;
+    this.chord = constructChordFromQuality(this.getRootNote(), chordQuality);
+    console.log(this.root, this.chordQuality, this.chord);
   }
 
   getRootNote() {
-    return this.tone + "4";
+    return this.root + "4";
   }
 
   getChord() {
-    return [this.getRootNote()];
+    return this.chord;
   }
 
   toggleActive() {
