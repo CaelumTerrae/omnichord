@@ -1,5 +1,5 @@
 // CONSTANTS
-let buttonWidth, buttonHeight;
+let buttonWidth, buttonHeight, polySynth, currentlyPlaying;
 const chordButtons = [];
 const noteNames = [
   "Db",
@@ -16,24 +16,46 @@ const noteNames = [
   "F#",
 ];
 
+const releaseQueue = [];
+
+const colorValues = [
+  "#ff0000",
+  "#ff8000",
+  "#ffff00",
+  "#80ff00",
+  "#00ff00",
+  "#00ff80",
+  "#00ffff",
+  "#0080ff",
+  "#0000ff",
+  "#8000ff",
+  "#ff00ff",
+  "#ff0080",
+];
+
 const modeNames = ["Maj", "Min", "7th"];
 
 function setup() {
   // INITIALIZING CONSTANTS
   buttonWidth = (windowWidth * 2) / 39;
   buttonHeight = windowHeight / 7;
+  currentlyPlaying = null;
+  polySynth = new p5.PolySynth();
 
-  // CANVAS SETUP
+  // SETUP
   createCanvas(windowWidth, windowHeight);
   textAlign(CENTER, TOP);
   textSize(windowWidth / 85);
   background(0);
+  getAudioContext().suspend();
+
   for (let y = 0; y < 3; y++) {
     for (let x = 0; x < 12; x++) {
       chordButtons.push(
         new Chord(
           noteNames[x],
           modeNames[y],
+          colorValues[x],
           ((3 / 2) * x + 1) * buttonWidth,
           (2 * y + 1) * buttonHeight,
           buttonWidth,
@@ -45,10 +67,54 @@ function setup() {
 }
 
 function mouseClicked() {
+  if (getAudioContext().state == "suspended") {
+    userStartAudio();
+  }
+  // collision detection for buttons
+  collidedFlag = false;
+
+  // no matter what, we can stop the currentlyPlaying chord
+  if (currentlyPlaying != null) {
+    // stop playing previous chord
+    console.log("stopping currentlyPlaying");
+    for (const note of currentlyPlaying.notes) {
+      console.log("stopping", note);
+      queueRelease(note);
+      // polySynth.noteRelease(note);
+    }
+  }
+
   for (const chordButton of chordButtons) {
     if (chordButton.doesCollide(mouseX, mouseY)) {
-      chordButton.setActive();
+      collidedFlag = true;
+      chordButton.toggleActive();
+      if (chordButton.isActive) {
+        // chord just turned active. Start note
+
+        // update currentlyPlaying
+        currentlyPlaying = {
+          notes: chordButton.getChord(),
+        };
+
+        // starting sustain
+        for (const note of chordButton.getChord()) {
+          queueBegin(chordButton.getRootNote());
+          console.log("starting ", note);
+        }
+      } else {
+        // toggling on currently playing note to stop the note
+
+        // turn currentlyPlaying to nothing
+        currentlyPlaying = null;
+
+        // release current chord
+        for (const note of chordButton.getChord()) {
+          polySynth.noteRelease(chordButton.getRootNote());
+          console.log("stopping ", note);
+        }
+      }
     } else {
+      // don't do any sound update logic
       chordButton.setInactive();
     }
   }
@@ -78,4 +144,16 @@ function draw() {
   for (const chordButton of chordButtons) {
     chordButton.show();
   }
+}
+
+function queueRelease(note) {
+  setTimeout(() => {
+    polySynth.noteRelease(note);
+  }, 10);
+}
+
+function queueBegin(note) {
+  setTimeout(() => {
+    polySynth.noteAttack(note);
+  }, 60);
 }

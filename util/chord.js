@@ -1,12 +1,25 @@
 class Chord {
-  constructor(tone, chordQuality, x, y, width, height) {
+  constructor(tone, chordQuality, color, x, y, width, height) {
     this.tone = tone;
     this.chordQuality = chordQuality;
+    this.color = color;
     this.height = height;
     this.width = width;
     this.x = x;
     this.y = y;
     this.isActive = false;
+  }
+
+  getRootNote() {
+    return this.tone + "4";
+  }
+
+  getChord() {
+    return [this.getRootNote()];
+  }
+
+  toggleActive() {
+    this.isActive = !this.isActive;
   }
 
   setActive() {
@@ -19,7 +32,7 @@ class Chord {
 
   show() {
     if (this.isActive) {
-      fill("red");
+      fill(this.color);
     } else {
       fill("white");
     }
